@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "username": "2bad2furious",
+    "email": "martin.macura@educanet.cz",
+    "age": 26
+  },
+  {
+    "id": 2,
+    "username": "monarezio",
+    "email": "samuel.kodytek@educanet.cz",
+    "age": 25
+  },
+  {
+    "id": 3,
+    "username": "jouda",
+    "email": "jouda007@seznam.cz",
+    "age": 33
+  },
+  {
+    "id": 4,
+    "username": "xxxYoMamaxxx",
+    "email": "frantisek.kamo@gmail.com",
+    "age": 7
+  },
+  {
+    "id": 5,
+    "username": "grandpa",
+    "email": "deda@volny.cz",
+    "age": 77
+  }
+]
