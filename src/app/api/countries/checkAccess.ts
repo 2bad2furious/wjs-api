@@ -1,10 +1,12 @@
+import {env} from "@/env.mjs";
 
-const allowedTokens = process.env.ACCESS_TOKENS?.split(";")
+const allowedTokens = env.ACCESS_TOKENS
 const headers = new Headers({
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization"
 });
-export function checkAccess(request: Request){
+
+export function checkAccess(request: Request) {
     if (!allowedTokens) {
         console.log("missing allowed tokens")
         return Response.json({error: "Server error"}, {status: 500, headers});
@@ -22,5 +24,5 @@ export function checkAccess(request: Request){
         return Response.json({error: "Unknown token provided"}, {status: 401, headers});
     }
 
-    return null;
+    return token;
 }

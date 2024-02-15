@@ -15,7 +15,7 @@ export function OPTIONS(request: Request){
 
 export async function GET(request: Request) {
     const response = checkAccess(request);
-    if (response) {
+    if (response instanceof Response) {
         return response;
     }
     const url = new URL(request.url);

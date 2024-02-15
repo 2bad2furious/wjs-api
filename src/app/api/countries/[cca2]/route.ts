@@ -11,7 +11,7 @@ export function OPTIONS(request: Request){
 
 export function GET(request: Request, {params: {cca2}}: { params: { cca2: string } }) {
     const response = checkAccess(request);
-    if (response) {
+    if (response instanceof Response) {
         return response;
     }
 
