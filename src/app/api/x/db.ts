@@ -10,6 +10,11 @@ export const users = pgTable('x_users', {
     fullName: text('full_name'),
 });
 
+export const publicUserColumns = {
+    id: users.id,
+    fullName: users.fullName
+} as const;
+
 export const posts = pgTable("x_posts", {
     id: uuid("id").defaultRandom().primaryKey(),
     authorId: uuid("authorId"),

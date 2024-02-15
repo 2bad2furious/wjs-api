@@ -1,7 +1,8 @@
 import {checkAccess} from "@/app/api/countries/checkAccess";
-import {db, posts, users} from "@/app/api/x/db";
-import {desc, eq, ilike,} from "drizzle-orm";
+import {db, posts, publicUserColumns, users} from "@/app/api/x/db";
+import {and, desc, eq, ilike, or,} from "drizzle-orm";
 import {z} from "zod";
+import {SQL} from "drizzle-orm/sql/sql";
 
 const headers = new Headers({
     "Access-Control-Allow-Origin": "*",
@@ -20,6 +21,18 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url);
     const search = url.searchParams.get("search");
+    const userId = url.searchParams.get("userId");
+
+    const conditions: (SQL | undefined)[] = [];
+    if (search) {
+        conditions.push(or(
+            ilike(posts.content, "%" + (search) + "%"),
+            ilike(users.fullName, "%" + (search) + "%")
+        ))
+    }
+    if (userId) {
+        conditions.push(eq(users.id, userId))
+    }
 
     const result = await db.select({
         post: {
@@ -27,13 +40,10 @@ export async function GET(request: Request) {
             content: posts.content,
             createdAt: posts.createdAt,
         },
-        author: {
-            id: users.id,
-            fullName: users.fullName
-        }
+        author: publicUserColumns
     }).from(posts)
         .innerJoin(users, eq(users.id, posts.authorId))
-        .where((ilike(posts.content, "%" + (search ?? "") + "%")))
+        .where(and(...conditions))
         .orderBy(desc(posts.createdAt))
         .limit(30);
 
