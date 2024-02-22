@@ -31,7 +31,8 @@ async function getPostById(id: string, {includeToken}: { includeToken?: boolean 
 
 const headers = new Headers({
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization,content-type"
+    "Access-Control-Allow-Headers": "*",
+    "Access-Control-Allow-Methods": "*"
 });
 
 export function OPTIONS() {
