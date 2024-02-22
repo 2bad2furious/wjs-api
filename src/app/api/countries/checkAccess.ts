@@ -3,7 +3,7 @@ import {env} from "@/env.mjs";
 const allowedTokens = env.ACCESS_TOKENS
 const headers = new Headers({
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization"
+    "Access-Control-Allow-Headers": "authorization,content-type"
 });
 
 export function checkAccess(request: Request) {

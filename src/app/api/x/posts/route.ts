@@ -1,8 +1,9 @@
 import {checkAccess} from "@/app/api/countries/checkAccess";
-import {db, posts, publicUserColumns, users} from "@/app/api/x/db";
+import {db, posts, publicPostColumns, publicUserColumns, users} from "@/app/api/x/db";
 import {and, desc, eq, ilike, or,} from "drizzle-orm";
-import {z} from "zod";
 import {SQL} from "drizzle-orm/sql/sql";
+import {schema} from "./schema";
+import {validationFailed} from "@/app/api/x/utils";
 
 const headers = new Headers({
     "Access-Control-Allow-Origin": "*",
@@ -22,6 +23,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const search = url.searchParams.get("search");
     const userId = url.searchParams.get("userId");
+    const noLimit = url.searchParams.get("noLimit") !== null;
 
     const conditions: (SQL | undefined)[] = [];
     if (search) {
@@ -35,26 +37,17 @@ export async function GET(request: Request) {
     }
 
     const result = await db.select({
-        post: {
-            id: posts.id,
-            content: posts.content,
-            createdAt: posts.createdAt,
-        },
+        post: publicPostColumns,
         author: publicUserColumns
     }).from(posts)
         .innerJoin(users, eq(users.id, posts.authorId))
         .where(and(...conditions))
         .orderBy(desc(posts.createdAt))
-        .limit(30);
+        .limit(noLimit ?  Number.MAX_SAFE_INTEGER : 30);
 
     return Response.json({data: result}, {headers})
 }
 
-const schema = z.object({
-    content: z.string()
-        .min(5, "Enter at least 5 characters")
-        .max(250, "Enter at most 250 characters")
-})
 
 export async function POST(request: Request) {
     const access = checkAccess(request);
@@ -65,7 +58,7 @@ export async function POST(request: Request) {
     const rawData = await request.json();
     const parseResult = await schema.safeParseAsync(rawData);
     if (!parseResult.success) {
-        return Response.json({message: "Invalid data", errors: parseResult.error.flatten()}, {status: 400, headers});
+        return validationFailed(parseResult, headers);
     }
 
     const {authorId} = (await db.select({authorId: users.id})

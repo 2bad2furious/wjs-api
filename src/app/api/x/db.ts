@@ -1,13 +1,13 @@
-import {pgTable, text, uuid, date, time, timestamp} from "drizzle-orm/pg-core";
+import {pgTable, text, timestamp, uuid,} from "drizzle-orm/pg-core";
 import {drizzle} from "drizzle-orm/postgres-js";
 import {env} from "@/env.mjs";
 import postgres from "postgres";
-import * as timers from "timers";
+import {randomUUID} from "node:crypto";
 
 export const users = pgTable('x_users', {
-    id: uuid('id').defaultRandom().primaryKey(),
-    authToken: text("token"),
-    fullName: text('full_name'),
+    id: text('id').$default(randomUUID).primaryKey(),
+    authToken: text("token").unique().notNull(),
+    fullName: text('full_name').notNull(),
 });
 
 export const publicUserColumns = {
@@ -16,11 +16,18 @@ export const publicUserColumns = {
 } as const;
 
 export const posts = pgTable("x_posts", {
-    id: uuid("id").defaultRandom().primaryKey(),
-    authorId: uuid("authorId"),
-    content: text("content"),
-    createdAt: timestamp("createdAt", {withTimezone: true}).defaultNow()
+    id: text("id").$default(randomUUID).primaryKey(),
+    authorId: text("authorId").notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("createdAt", {withTimezone: true}).defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt", {withTimezone: true}).defaultNow().notNull(),
 })
+
+export const publicPostColumns = {
+    id: posts.id,
+    content: posts.content,
+    createdAt: posts.createdAt,
+} as const;
 
 const client = postgres(env.DATABASE_URL)
 
