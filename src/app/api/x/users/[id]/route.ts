@@ -6,7 +6,8 @@ import {validationFailed} from "@/app/api/x/utils";
 
 const headers = new Headers({
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization,content-type"
+    "Access-Control-Allow-Headers": "*",
+    "Access-Control-Allow-Methods": "*"
 });
 
 export function OPTIONS() {
