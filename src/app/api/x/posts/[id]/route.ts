@@ -1,33 +1,10 @@
 import {checkAccess} from "@/app/api/countries/checkAccess";
-import {db, posts, publicPostColumns, publicUserColumns, users} from "@/app/api/x/db";
-import {and, eq} from "drizzle-orm";
+import {db, posts} from "@/app/api/x/db";
+import {eq} from "drizzle-orm";
 import {schema} from "../schema";
 import {validationFailed} from "@/app/api/x/utils";
+import {getPostById, getPostByIdWithToken, getPostWithLikesAndLikeStatus, getUserByAccessToken} from "../utils";
 
-//link https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type
-type UnionToIntersection<U> =
-    (U extends any ? (x: U)=>void : never) extends ((x: infer I)=>void) ? I : never
-async function getPostById(id: string, {includeToken}: { includeToken?: boolean } = {}) {
-    const userColumns = includeToken ? {
-        ...publicUserColumns,
-        authToken: users.authToken
-    } : publicUserColumns;
-
-    const results = await db.select({
-        post: publicPostColumns,
-        author: userColumns
-    } as const).from(posts)
-        .innerJoin(users, eq(users.id, posts.authorId))
-        .where(and(eq(posts.id, id)))
-        .limit(1);
-
-    if (!results.length) {
-        return null
-    }
-
-    const {post, author} = results[0];
-    return {post, author: author as UnionToIntersection<typeof author>}
-}
 
 const headers = new Headers({
     "Access-Control-Allow-Origin": "*",
@@ -45,9 +22,11 @@ export async function GET(request: Request, {params: {id}}: { params: { id: stri
         return access;
     }
 
-    const post = await getPostById(id)
+    const {authorId: currentUserId} = await getUserByAccessToken(access);
+
+    const post = await getPostWithLikesAndLikeStatus(id, currentUserId)
     if (!post) {
-        return Response.json({error: "Post not found"}, {status: 400, headers});
+        return Response.json({error: "Post not found"}, {status: 404, headers});
     }
 
     return Response.json({data: post}, {headers})
@@ -60,7 +39,7 @@ export async function PUT(request: Request, {params: {id}}: { params: { id: stri
         return access;
     }
 
-    const post = await getPostById(id, {includeToken: true})
+    const post = await getPostByIdWithToken(id)
     if (!post) {
         return Response.json({error: "Post not found"}, {status: 400, headers});
     }
@@ -75,7 +54,7 @@ export async function PUT(request: Request, {params: {id}}: { params: { id: stri
     }
 
     const {content} = parseResult.data;
-    const result = await db.update(posts)
+    await db.update(posts)
         .set({content, updatedAt: new Date()})
         .where(eq(posts.id, id));
 
@@ -90,7 +69,7 @@ export async function DELETE(request: Request, {params: {id}}: { params: { id: s
         return access;
     }
 
-    const post = await getPostById(id, {includeToken: true})
+    const post = await getPostByIdWithToken(id)
     if (!post) {
         return Response.json({error: "Post not found"}, {status: 400, headers});
     }
