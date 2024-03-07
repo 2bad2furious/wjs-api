@@ -33,7 +33,7 @@ export async function GET(request: Request, {params: {id}}: { params: { id: stri
 }
 
 const schema = z.object({
-    fullName: z.string().min(2)
+    fullName: z.string().min(2).max(30)
 })
 
 export async function PUT(request: Request, {params: {id}}: { params: { id: string } }) {
